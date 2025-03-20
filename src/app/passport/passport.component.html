@@ -1,0 +1,36 @@
+<div class="container">
+  <h2>Identity Form</h2>
+  <form (ngSubmit)="onSubmit()">
+    <!-- Family Name -->
+    <label>Family Name</label>
+    <input type="text" [(ngModel)]="form.familyName" name="familyName" required>
+
+    <!-- Given Name -->
+    <label>Given Name</label>
+    <input type="text" [(ngModel)]="form.givenName" name="givenName" required>
+
+    <!-- Identity Number -->
+    <label>Identity Number</label>
+    <input type="text" [(ngModel)]="form.identityNumber" name="identityNumber" required>
+
+    <!-- Card Number -->
+    <label>Card Number</label>
+    <input type="text" [(ngModel)]="form.cardNumber" name="cardNumber" required>
+
+    <!-- Birthdate -->
+    <label>Birthdate</label>
+    <input type="date" [(ngModel)]="form.birthdate" name="birthdate" required>
+
+    <!-- Upload Selfie -->
+    <label>Upload Selfie</label>
+    <input type="file" (change)="onFileSelected($event, 'selfie')" accept="image/*">
+
+    <!-- Upload ID Card -->
+    <label>Upload ID Card</label>
+    <input type="file" (change)="onFileSelected($event, 'idCard')" accept="image/*">
+
+    <!-- Submit Button -->
+    <button type="submit">Submit</button>
+  </form>
+  <a routerLink="/">Back</a>
+</div>

@@ -1,0 +1,57 @@
+
+<div class="container">
+
+  <h2>Identity Form</h2>
+  <form (ngSubmit)="onSubmit()">
+    <!-- Family Name -->
+    <label>Family Name</label>
+    <input type="text" [(ngModel)]="form.familyName" name="familyName" required>
+
+    <!-- Given Name -->
+    <label>Given Name</label>
+    <input type="text" [(ngModel)]="form.givenName" name="givenName" required>
+
+    <!-- Identity Number -->
+    <label>Identity Number</label>
+    <input type="text" [(ngModel)]="form.identityNumber" name="identityNumber" required>
+
+    <!-- Card Number -->
+    <label>Card Number</label>
+    <input type="text" [(ngModel)]="form.cardNumber" name="cardNumber" required>
+
+    <!-- Birthdate -->
+    <label>Birthdate</label>
+    <input type="date" [(ngModel)]="form.birthdate" name="birthdate" required>
+
+    <!-- Upload Selfie -->
+    <label>Upload Selfie</label>
+    <input type="file" (change)="onFileSelected($event, 'selfie')" accept="image/*">
+
+<!-- Front Side Upload -->
+<label>Upload Front Side:</label>
+<input type="file" (change)="onFrontSelected($event)" accept="image/*">
+<img *ngIf="frontPreview" [src]="frontPreview" alt="Front Side Preview" width="200">
+
+<!-- Back Side Upload -->
+<label>Upload Back Side:</label>
+<input type="file" (change)="onBackSelected($event)" accept="image/*">
+<img *ngIf="backPreview" [src]="backPreview" alt="Back Side Preview" width="200">
+
+
+<!-- Extracted Information -->
+<h3>Extracted Information:</h3>
+<p *ngIf="identityNumber">Identity Number: {{ identityNumber }}</p>
+<p *ngIf="cardNumber">Card Number: {{ cardNumber }}</p>
+<p *ngIf="birthdate">Birthdate: {{ birthdate }}</p>
+<p *ngIf="expiryDate">Expiry Date: {{ expiryDate }}</p>
+<p *ngIf="familyName">Family Name: {{ familyName }}</p>
+<p *ngIf="givenName">Given Name: {{ givenName }}</p>
+<h3>Extracted Face:</h3>
+<img *ngIf="extractedFace" [src]="extractedFace" alt="Extracted Face" width="150">
+
+
+    <!-- Submit Button -->
+    <button type="submit">Submit</button>
+  </form>
+  <a routerLink="/">Back</a>
+</div>
