@@ -25,7 +25,7 @@
 
     <!-- Upload Selfie -->
     <label>Upload Selfie</label>
-    <input type="file" (change)="onFileSelected($event, 'selfie')" accept="image/*">
+    <input type="file" (change)="onSelfieSelected($event)" accept="image/*">
 
 <!-- Front Side Upload -->
 <label>Upload Front Side:</label>
@@ -46,8 +46,12 @@
 <p *ngIf="expiryDate">Expiry Date: {{ expiryDate }}</p>
 <p *ngIf="familyName">Family Name: {{ familyName }}</p>
 <p *ngIf="givenName">Given Name: {{ givenName }}</p>
-<h3>Extracted Face:</h3>
-<img *ngIf="extractedFace" [src]="extractedFace" alt="Extracted Face" width="150">
+<h3>Extracted Faces:</h3>
+<p *ngIf="frontFace"><b>ID Card Face:</b></p>
+<img *ngIf="frontFace" [src]="frontFace" alt="Extracted ID Face" width="100">
+
+<p *ngIf="selfieFace"><b>Selfie Face:</b></p>
+<img *ngIf="selfieFace" [src]="selfieFace" alt="Extracted Selfie Face" width="150">
 
 
     <!-- Submit Button -->
