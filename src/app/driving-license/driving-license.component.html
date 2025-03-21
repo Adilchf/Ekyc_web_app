@@ -1,5 +1,6 @@
 
 <div class="container">
+
   <h2>Identity Form</h2>
   <form (ngSubmit)="onSubmit()">
     <!-- Family Name -->
@@ -24,11 +25,35 @@
 
     <!-- Upload Selfie -->
     <label>Upload Selfie</label>
-    <input type="file" (change)="onFileSelected($event, 'selfie')" accept="image/*">
+    <input type="file" (change)="onSelfieSelected($event)" accept="image/*">
 
-    <!-- Upload ID Card -->
-    <label>Upload ID Card</label>
-    <input type="file" (change)="onFileSelected($event, 'idCard')" accept="image/*">
+<!-- Front Side Upload -->
+<label>Upload Front Side:</label>
+<input type="file" (change)="onFrontSelected($event)" accept="image/*">
+<img *ngIf="frontPreview" [src]="frontPreview" alt="Front Side Preview" width="200">
+
+
+<!-- Back Side Upload -->
+
+<!-- Back Side Upload -->
+<label>Upload Back Side:</label>
+<input type="file" (change)="onBackSelected($event)" accept="image/*">
+<img *ngIf="backPreview" [src]="backPreview" alt="Back Side Preview" width="200">
+<!-- Extracted Information -->
+<h3>Extracted Information:</h3>
+<p *ngIf="identityNumber">Identity Number: {{ identityNumber }}</p>
+<p *ngIf="cardNumber">Card Number: {{ cardNumber }}</p>
+<p *ngIf="birthdate">Birthdate: {{ birthdate }}</p>
+<p *ngIf="expiryDate">Expiry Date: {{ expiryDate }}</p>
+<p *ngIf="familyName">Family Name: {{ familyName }}</p>
+<p *ngIf="givenName">Given Name: {{ givenName }}</p>
+<h3>Extracted Faces:</h3>
+<p *ngIf="frontFace"><b>ID Card Face:</b></p>
+<img *ngIf="frontFace" [src]="frontFace" alt="Extracted ID Face" width="100">
+
+<p *ngIf="selfieFace"><b>Selfie Face:</b></p>
+<img *ngIf="selfieFace" [src]="selfieFace" alt="Extracted Selfie Face" width="150">
+
 
     <!-- Submit Button -->
     <button type="submit">Submit</button>

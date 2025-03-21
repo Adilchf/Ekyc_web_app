@@ -264,13 +264,7 @@ areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
   }
 }
 
-  /** Handles Selfie Upload */
 
-  /** Handles Back ID Upload */
-
-
-  /** Extracts face from the front ID card */
-/** Ensures models are loaded and extracts face with padding */
 
 
 
