@@ -234,13 +234,13 @@ extractGivenName(text: string): string | null {
 
 /** Extracts Birthdate (YYMMDD) */
 extractBirthdate(text: string): string | null {
-  const match = text.match(/\b(\d{6})\dM/); // Extract date before 'M'
+  const match = text.match(/\b(\d{6})\d[M|F]/); // Extract date before 'M'
   return match ? this.formatDate(match[1]) : null;
 }
 
 /** Extracts Expiry Date (YYMMDD) */
 extractExpiryDate(text: string): string | null {
-  const match = text.match(/\dM(\d{6})/); // Extract date after 'M'
+  const match = text.match(/\d[M|F](\d{6})/); // Extract date after 'M'
   return match ? this.formatDate(match[1]) : null;
 }
 
