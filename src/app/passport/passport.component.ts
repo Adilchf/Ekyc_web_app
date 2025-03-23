@@ -6,9 +6,8 @@ import * as faceapi from 'face-api.js';
 import { ApiService } from '../services/api.service';
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
-
 @Component({
-  selector: 'app-passport',
+  selector: 'app-pssport',
   templateUrl: './passport.component.html',
   styleUrls: ['./passport.component.css'],
   standalone: true,
@@ -47,6 +46,7 @@ export class PassportComponent {
   frontFace: string | null = null;
   selfieFace: string | null = null;
 
+
   async ngOnInit() {
     await this.loadFaceModels();
     console.log("🔄 Loading face-api.js models...");
@@ -81,7 +81,20 @@ export class PassportComponent {
 
     reader.readAsDataURL(file);
   }
+  onBackSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
 
+    this.form.backImage = file;
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.backPreview = reader.result as string;
+      this.extractBackText(); // Extract names from back side
+    };
+
+    reader.readAsDataURL(file);
+  }
 
   /** Extracts text from the front image using OCR */
 
@@ -115,16 +128,6 @@ export class PassportComponent {
         this.identityNumber = this.extractIdentityNumber(text);
         this.cardNumber = this.extractCardNumber(text);
 
-        this.familyName = this.extractFamilyName(text);
-        this.givenName = this.extractGivenName(text);
-        this.birthdate = this.extractBirthdate(text);
-        this.expiryDate = this.extractExpiryDate(text);
-
-        // Update form fields
-        this.form.familyName = this.familyName || '';
-        this.form.givenName = this.givenName || '';
-        this.form.birthdate = this.birthdate || '';
-        this.form.expiryDate = this.expiryDate || '';
 
         this.form.identityNumber = this.identityNumber || '';
         this.form.cardNumber = this.cardNumber || '';
@@ -132,8 +135,28 @@ export class PassportComponent {
       })
       .catch(error => console.error('OCR Error:', error));
   }
+  extractBackText() {
+    if (!this.backPreview) {
+      console.error("Back image is required!");
+      return;
+    }
 
-
+    Tesseract.recognize(
+      this.backPreview,
+      'eng',
+      { logger: m => console.log(m) }
+    ).then(({ data: { text } }) => {
+      console.log('Extracted Back Text:', text);
+      this.familyName = this.extractFamilyName(text);
+      this.givenName = this.extractGivenName(text);
+      this.birthdate = this.extractBirthdate(text);
+      this.expiryDate = this.extractExpiryDate(text);
+      this.form.familyName = this.familyName || '';
+      this.form.givenName = this.givenName || '';
+      this.form.expiryDate = this.expiryDate || '';
+      this.form.birthdate = this.birthdate || '';
+    }).catch(error => console.error('OCR Error (Back):', error));
+  }
 
   /** Extract Face from Image */
   async extractFace(imageSrc: string, isSelfie = false): Promise<string | null> {
@@ -221,26 +244,26 @@ areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
     return match ? match[0] : null;
   }
 
-  /** Extract Dates (YYYY.MM.DD) */
 
 
-  /** Extracts Family Name from the OCR text */
-extractFamilyName(text: string): string | null {
-  const match = text.match(/DZA([A-Z]+)<<([A-Z]+)/);
-  return match ? match[1] : null;
-}
+    /** Extracts Family Name (Nom:) */
+    extractFamilyName(text: string): string | null {
+      const match = text.match(/Nom:\s*([A-Z]+)/i);
+      return match ? match[1].trim() : null;
+    }
 
-/** Extracts Given Name from the OCR text */
-extractGivenName(text: string): string | null {
-  const match = text.match(/([A-Z]+)<<([A-Z]+)/);
-  return match ? match[2] : null;
-}
+    /** Extracts Given Name (Prénom(s)) only from its line */
+    extractGivenName(text: string): string | null {
+      const match = text.match(/Prénom\(s\):\s*([A-Z]+)/i);
+      return match ? match[1].trim() : null;
+    }
 
-/** Extracts Birthdate (YYMMDD) */
+    /** Extracts Birthdate (YYMMDD) */
 extractBirthdate(text: string): string | null {
-  const match = text.match(/(\d{6})\d[M|F]/); // Extract date before 'M'
+  const match = text.match(/\b(\d{6})\d[M|F]/); // Extract date before 'M'
   return match ? this.formatDate(match[1]) : null;
 }
+
 /** Extracts Expiry Date (YYMMDD) */
 extractExpiryDate(text: string): string | null {
   const match = text.match(/\d[M|F](\d{6})/); // Extract date after 'M'
@@ -252,32 +275,41 @@ formatDate(yyMMdd: string): string {
   const year = parseInt(yyMMdd.substring(0, 2), 10);
   const month = yyMMdd.substring(2, 4);
   const day = yyMMdd.substring(4, 6);
-  const currentYear = new Date().getFullYear() % 100; // Get last two digits of current year
-  const century = year <= currentYear ? 2000 : 1900; // Adjust century dynamically
 
-  const fullYear = century + year; // Construct full year
+  const fullYear = year > 50 ? 1900 + year : 2000 + year;; // Handles 20th and 21st century
 
-
-  return `${fullYear}-${month}-${day}`;
+  return `${day}.${month}.${fullYear}`;
 }
 
 
 onSubmit() {
   const formData = new FormData();
+
+  // Required fields
+  const requiredFields = [
+    this.form.identityNumber,
+    this.form.cardNumber,
+    this.form.expiryDate,
+    this.form.birthdate,
+    this.form.familyName,
+    this.form.givenName,
+    this.form.frontImage,
+    this.form.selfie
+  ];
+
+  // Check if any field is empty
+  if (requiredFields.some(field => !field || field === '')) {
+    alert('⚠️ All fields are required. Please fill in all fields before submitting.');
+    return;
+  }
+
+  // Append fields after validation
   formData.append('identityNumber', this.form.identityNumber);
   formData.append('cardNumber', this.form.cardNumber);
   formData.append('expiryDate', this.form.expiryDate);
   formData.append('birthdate', this.form.birthdate);
   formData.append('familyName', this.form.familyName);
   formData.append('givenName', this.form.givenName);
-
-  if (this.form.frontImage) {
-    formData.append('frontImage', this.form.frontImage);
-  }
-
-  if (this.form.selfie) {
-    formData.append('selfie', this.form.selfie);
-  }
 
   // Convert extracted faces from Base64 to Blob and append to FormData
   if (this.frontFace) {
@@ -290,6 +322,7 @@ onSubmit() {
     formData.append('selfieFace', selfieFaceBlob, 'selfieFace.png');
   }
 
+  // Submit the form only if all fields are filled
   this.http.post('http://localhost:5000/save-id-card', formData).subscribe(
     response => {
       console.log('✅ Data saved:', response);
@@ -302,19 +335,26 @@ onSubmit() {
   );
 }
 
-// Utility function to convert Base64 to Blob
-dataURLtoBlob(dataURL: string): Blob {
-  const byteString = atob(dataURL.split(',')[1]);
-  const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
-  const arrayBuffer = new ArrayBuffer(byteString.length);
-  const intArray = new Uint8Array(arrayBuffer);
 
-  for (let i = 0; i < byteString.length; i++) {
-    intArray[i] = byteString.charCodeAt(i);
-  }
+    // Utility function to convert Base64 to Blob
+    dataURLtoBlob(dataURL: string): Blob {
+      const byteString = atob(dataURL.split(',')[1]);
+      const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const intArray = new Uint8Array(arrayBuffer);
 
-  return new Blob([arrayBuffer], { type: mimeString });
-}
+      for (let i = 0; i < byteString.length; i++) {
+        intArray[i] = byteString.charCodeAt(i);
+      }
+
+      return new Blob([arrayBuffer], { type: mimeString });
+    }
+
+
+
+
+
+
 }
 
 

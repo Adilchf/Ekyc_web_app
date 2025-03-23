@@ -276,54 +276,66 @@ formatDate(yyMMdd: string): string {
   const month = yyMMdd.substring(2, 4);
   const day = yyMMdd.substring(4, 6);
 
-  const currentYear = new Date().getFullYear() % 100; // Get last two digits of current year
-  const century = year <= currentYear ? 2000 : 1900; // Adjust century dynamically
+  const fullYear = year > 50 ? 1900 + year : 2000 + year;; // Handles 20th and 21st century
 
-  const fullYear = century + year; // Handles 20th and 21st century
-
-  return `${fullYear}-${month}-${day}`;
+  return `${day}.${month}.${fullYear}`;
 }
 
 
-    onSubmit() {
-      const formData = new FormData();
-      formData.append('identityNumber', this.form.identityNumber);
-      formData.append('cardNumber', this.form.cardNumber);
-      formData.append('expiryDate', this.form.expiryDate);
-      formData.append('birthdate', this.form.birthdate);
-      formData.append('familyName', this.form.familyName);
-      formData.append('givenName', this.form.givenName);
+onSubmit() {
+  const formData = new FormData();
 
-      if (this.form.frontImage) {
-        formData.append('frontImage', this.form.frontImage);
-      }
+  // Required fields
+  const requiredFields = [
+    this.form.identityNumber,
+    this.form.cardNumber,
+    this.form.expiryDate,
+    this.form.birthdate,
+    this.form.familyName,
+    this.form.givenName,
+    this.form.frontImage,
+    this.form.selfie
+  ];
 
-      if (this.form.selfie) {
-        formData.append('selfie', this.form.selfie);
-      }
+  // Check if any field is empty
+  if (requiredFields.some(field => !field || field === '')) {
+    alert('⚠️ All fields are required. Please fill in all fields before submitting.');
+    return;
+  }
 
-      // Convert extracted faces from Base64 to Blob and append to FormData
-      if (this.frontFace) {
-        const frontFaceBlob = this.dataURLtoBlob(this.frontFace);
-        formData.append('frontFace', frontFaceBlob, 'frontFace.png');
-      }
+  // Append fields after validation
+  formData.append('identityNumber', this.form.identityNumber);
+  formData.append('cardNumber', this.form.cardNumber);
+  formData.append('expiryDate', this.form.expiryDate);
+  formData.append('birthdate', this.form.birthdate);
+  formData.append('familyName', this.form.familyName);
+  formData.append('givenName', this.form.givenName);
 
-      if (this.selfieFace) {
-        const selfieFaceBlob = this.dataURLtoBlob(this.selfieFace);
-        formData.append('selfieFace', selfieFaceBlob, 'selfieFace.png');
-      }
 
-      this.http.post('http://localhost:5000/save-id-card', formData).subscribe(
-        response => {
-          console.log('✅ Data saved:', response);
-          alert('ID card saved successfully!');
-        },
-        error => {
-          console.error('❌ Error saving data:', error);
-          alert('Failed to save ID card');
-        }
-      );
+  // Convert extracted faces from Base64 to Blob and append to FormData
+  if (this.frontFace) {
+    const frontFaceBlob = this.dataURLtoBlob(this.frontFace);
+    formData.append('frontFace', frontFaceBlob, 'frontFace.png');
+  }
+
+  if (this.selfieFace) {
+    const selfieFaceBlob = this.dataURLtoBlob(this.selfieFace);
+    formData.append('selfieFace', selfieFaceBlob, 'selfieFace.png');
+  }
+
+  // Submit the form only if all fields are filled
+  this.http.post('http://localhost:5000/save-id-card', formData).subscribe(
+    response => {
+      console.log('✅ Data saved:', response);
+      alert('ID card saved successfully!');
+    },
+    error => {
+      console.error('❌ Error saving data:', error);
+      alert('Failed to save ID card');
     }
+  );
+}
+
 
     // Utility function to convert Base64 to Blob
     dataURLtoBlob(dataURL: string): Blob {
