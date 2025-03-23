@@ -22,6 +22,9 @@
     <!-- Birthdate -->
     <label>Birthdate</label>
     <input type="date" [(ngModel)]="form.birthdate" name="birthdate" required>
+    <!-- expiry date -->
+    <label>Expiry Date</label>
+    <input type="date" [(ngModel)]="form.expiryDate" name="expiryDate" required>
 
     <!-- Upload Selfie -->
     <label>Upload Selfie</label>
@@ -36,6 +39,7 @@
 <label>Upload Back Side:</label>
 <input type="file" (change)="onBackSelected($event)" accept="image/*">
 <img *ngIf="backPreview" [src]="backPreview" alt="Back Side Preview" width="200">
+
 
 
 <!-- Extracted Information -->
