@@ -238,7 +238,7 @@ extractGivenName(text: string): string | null {
 
 /** Extracts Birthdate (YYMMDD) */
 extractBirthdate(text: string): string | null {
-  const match = text.match(/\b(\d{6})\d[M|F]/); // Extract date before 'M'
+  const match = text.match(/(\d{6})\d[M|F]/); // Extract date before 'M'
   return match ? this.formatDate(match[1]) : null;
 }
 /** Extracts Expiry Date (YYMMDD) */
@@ -252,10 +252,13 @@ formatDate(yyMMdd: string): string {
   const year = parseInt(yyMMdd.substring(0, 2), 10);
   const month = yyMMdd.substring(2, 4);
   const day = yyMMdd.substring(4, 6);
+  const currentYear = new Date().getFullYear() % 100; // Get last two digits of current year
+  const century = year <= currentYear ? 2000 : 1900; // Adjust century dynamically
 
-  const fullYear = year > 50 ? `19${year}` : `20${year}`; // Handles 20th and 21st century
+  const fullYear = century + year; // Construct full year
 
-  return `${day}.${month}.${fullYear}`;
+
+  return `${fullYear}-${month}-${day}`;
 }
 
 

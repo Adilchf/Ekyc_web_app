@@ -276,9 +276,12 @@ formatDate(yyMMdd: string): string {
   const month = yyMMdd.substring(2, 4);
   const day = yyMMdd.substring(4, 6);
 
-  const fullYear = year > 50 ? `19${year}` : `20${year}`; // Handles 20th and 21st century
+  const currentYear = new Date().getFullYear() % 100; // Get last two digits of current year
+  const century = year <= currentYear ? 2000 : 1900; // Adjust century dynamically
 
-  return `${day}.${month}.${fullYear}`;
+  const fullYear = century + year; // Handles 20th and 21st century
+
+  return `${fullYear}-${month}-${day}`;
 }
 
 
