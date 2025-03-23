@@ -127,14 +127,11 @@ export class IdCardComponent {
         console.log('Extracted Text:', text);
         this.identityNumber = this.extractIdentityNumber(text);
         this.cardNumber = this.extractCardNumber(text);
-        const dates = this.extractDates(text);
-        this.expiryDate = dates[1] || null;
-        this.birthdate = dates[2] || null;
+
 
         this.form.identityNumber = this.identityNumber || '';
         this.form.cardNumber = this.cardNumber || '';
-        this.form.expiryDate = this.expiryDate || '';
-        this.form.birthdate = this.birthdate || '';
+
       })
       .catch(error => console.error('OCR Error:', error));
   }
@@ -152,9 +149,12 @@ export class IdCardComponent {
       console.log('Extracted Back Text:', text);
       this.familyName = this.extractFamilyName(text);
       this.givenName = this.extractGivenName(text);
-
+      this.birthdate = this.extractBirthdate(text);
+      this.expiryDate = this.extractExpiryDate(text);
       this.form.familyName = this.familyName || '';
       this.form.givenName = this.givenName || '';
+      this.form.expiryDate = this.expiryDate || '';
+      this.form.birthdate = this.birthdate || '';
     }).catch(error => console.error('OCR Error (Back):', error));
   }
 
@@ -244,11 +244,7 @@ areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
     return match ? match[0] : null;
   }
 
-  /** Extract Dates (YYYY.MM.DD) */
-  extractDates(text: string): string[] {
-    const dateRegex = /\b(\d{4}\.\d{2}\.\d{2})\b/g;
-    return text.match(dateRegex) || [];
-  }
+
 
     /** Extracts Family Name (Nom:) */
     extractFamilyName(text: string): string | null {
@@ -261,6 +257,29 @@ areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
       const match = text.match(/Prénom\(s\):\s*([A-Z]+)/i);
       return match ? match[1].trim() : null;
     }
+
+    /** Extracts Birthdate (YYMMDD) */
+extractBirthdate(text: string): string | null {
+  const match = text.match(/\b(\d{6})\d[M|F]/); // Extract date before 'M'
+  return match ? this.formatDate(match[1]) : null;
+}
+
+/** Extracts Expiry Date (YYMMDD) */
+extractExpiryDate(text: string): string | null {
+  const match = text.match(/\d[M|F](\d{6})/); // Extract date after 'M'
+  return match ? this.formatDate(match[1]) : null;
+}
+
+/** Converts YYMMDD to DD.MM.YYYY */
+formatDate(yyMMdd: string): string {
+  const year = parseInt(yyMMdd.substring(0, 2), 10);
+  const month = yyMMdd.substring(2, 4);
+  const day = yyMMdd.substring(4, 6);
+
+  const fullYear = year > 50 ? `19${year}` : `20${year}`; // Handles 20th and 21st century
+
+  return `${day}.${month}.${fullYear}`;
+}
 
 
     onSubmit() {
