@@ -81,20 +81,7 @@ export class PassportComponent {
 
     reader.readAsDataURL(file);
   }
-  onBackSelected(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
 
-    this.form.backImage = file;
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      this.backPreview = reader.result as string;
-      this.extractBackText(); // Extract names from back side
-    };
-
-    reader.readAsDataURL(file);
-  }
 
   /** Extracts text from the front image using OCR */
 
@@ -127,36 +114,21 @@ export class PassportComponent {
         console.log('Extracted Text:', text);
         this.identityNumber = this.extractIdentityNumber(text);
         this.cardNumber = this.extractCardNumber(text);
-
-
+        this.familyName = this.extractFamilyName(text);
+        this.givenName = this.extractGivenName(text);
+        this.birthdate = this.extractBirthdate(text);
+        this.expiryDate = this.extractExpiryDate(text);
+        this.form.familyName = this.familyName || '';
+        this.form.givenName = this.givenName || '';
+        this.form.expiryDate = this.expiryDate || '';
+        this.form.birthdate = this.birthdate || '';
         this.form.identityNumber = this.identityNumber || '';
         this.form.cardNumber = this.cardNumber || '';
 
       })
       .catch(error => console.error('OCR Error:', error));
   }
-  extractBackText() {
-    if (!this.backPreview) {
-      console.error("Back image is required!");
-      return;
-    }
 
-    Tesseract.recognize(
-      this.backPreview,
-      'eng',
-      { logger: m => console.log(m) }
-    ).then(({ data: { text } }) => {
-      console.log('Extracted Back Text:', text);
-      this.familyName = this.extractFamilyName(text);
-      this.givenName = this.extractGivenName(text);
-      this.birthdate = this.extractBirthdate(text);
-      this.expiryDate = this.extractExpiryDate(text);
-      this.form.familyName = this.familyName || '';
-      this.form.givenName = this.givenName || '';
-      this.form.expiryDate = this.expiryDate || '';
-      this.form.birthdate = this.birthdate || '';
-    }).catch(error => console.error('OCR Error (Back):', error));
-  }
 
   /** Extract Face from Image */
   async extractFace(imageSrc: string, isSelfie = false): Promise<string | null> {
@@ -248,19 +220,19 @@ areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
 
     /** Extracts Family Name (Nom:) */
     extractFamilyName(text: string): string | null {
-      const match = text.match(/Nom:\s*([A-Z]+)/i);
-      return match ? match[1].trim() : null;
+      const match = text.match(/DZA([A-Z]+)<<([A-Z]+)/);
+      return match ? match[1] : null;
     }
 
-    /** Extracts Given Name (Prénom(s)) only from its line */
+    /** Extracts Given Name from the OCR text */
     extractGivenName(text: string): string | null {
-      const match = text.match(/Prénom\(s\):\s*([A-Z]+)/i);
-      return match ? match[1].trim() : null;
+      const match = text.match(/([A-Z]+)<<([A-Z]+)/);
+      return match ? match[2] : null;
     }
 
     /** Extracts Birthdate (YYMMDD) */
 extractBirthdate(text: string): string | null {
-  const match = text.match(/\b(\d{6})\d[M|F]/); // Extract date before 'M'
+  const match = text.match(/(\d{6})\d[M|F]/); // Extract date before 'M'
   return match ? this.formatDate(match[1]) : null;
 }
 
@@ -278,7 +250,7 @@ formatDate(yyMMdd: string): string {
 
   const fullYear = year > 50 ? 1900 + year : 2000 + year;; // Handles 20th and 21st century
 
-  return `${day}.${month}.${fullYear}`;
+  return `${fullYear}-${month}-${day}`;
 }
 
 

@@ -276,9 +276,9 @@ formatDate(yyMMdd: string): string {
   const month = yyMMdd.substring(2, 4);
   const day = yyMMdd.substring(4, 6);
 
-  const fullYear = year > 50 ? 1900 + year : 2000 + year;; // Handles 20th and 21st century
+  const fullYear = year > 50 ? 1900 + year : 2000 + year; // Handles 20th and 21st century
 
-  return `${day}.${month}.${fullYear}`;
+  return `${fullYear}-${month}-${day}`;
 }
 
 
@@ -294,7 +294,7 @@ onSubmit() {
     this.form.familyName,
     this.form.givenName,
     this.form.frontImage,
-    this.form.selfie
+    
   ];
 
   // Check if any field is empty
