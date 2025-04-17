@@ -166,40 +166,56 @@ export class IdCardComponent {
   }
 
   /** Extract Face from Image */
-  async extractFace(imageSrc: string, isSelfie = false): Promise<string | null> {
+   /** Extract face image from a given imageSrc */
+   async extractFace(imageSrc: string, isSelfie = false): Promise<string | null> {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = imageSrc;
+
       img.onload = async () => {
-        const detections = await faceapi.detectSingleFace(img).withFaceLandmarks();
+        const detections = await faceapi
+          .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks();
 
         if (!detections) {
-          alert(isSelfie ? "No face detected in selfie. Please upload a clearer image." : "No face detected in ID card.");
+          alert(isSelfie
+            ? "No face detected in selfie. Please upload a clearer image."
+            : "No face detected in ID card.");
           resolve(null);
           return;
         }
 
         const landmarks = detections.landmarks;
 
-        // 🔍 Check if eyes are closed
+        // 🔍 Check for closed eyes in selfie
         if (isSelfie && this.areEyesClosed(landmarks)) {
           alert("Eyes are closed. Please open your eyes and retake the photo.");
-          resolve(null);  // Stop processing and return null
+          resolve(null);
           return;
         }
 
         const { x, y, width, height } = detections.detection.box;
-        const padding = width * 0.4;  // Adds extra space around face
+        const padding = width * 0.4;
+
         const canvas = document.createElement('canvas');
         canvas.width = width + padding * 2;
         canvas.height = height + padding * 2;
+
         const ctx = canvas.getContext('2d');
-
         if (ctx) {
-          ctx.drawImage(img, x - padding, y - padding, width + padding * 2, height + padding * 2, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(
+            img,
+            x - padding,
+            y - padding,
+            width + padding * 2,
+            height + padding * 2,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
           const faceDataURL = canvas.toDataURL('image/png');
-
-          resolve(faceDataURL);  // ✅ Successfully extracted face
+          resolve(faceDataURL);
         } else {
           resolve(null);
         }
@@ -207,34 +223,37 @@ export class IdCardComponent {
     });
   }
 
+  /** Detect if both eyes are closed using EAR (Eye Aspect Ratio) */
+  areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
 
+    function eyeOpenness(eye: faceapi.Point[]): number {
+      const verticalDist1 = Math.abs(eye[1].y - eye[5].y);
+      const verticalDist2 = Math.abs(eye[2].y - eye[4].y);
+      const horizontalDist = Math.abs(eye[3].x - eye[0].x);
+      return (verticalDist1 + verticalDist2) / (2.0 * horizontalDist);
+    }
 
-/** Check if eyes are closed */
-/** ✅ Detects if eyes are closed */
-areEyesClosed(landmarks: faceapi.FaceLandmarks68): boolean {
-  const leftEye = landmarks.getLeftEye();
-  const rightEye = landmarks.getRightEye();
+    const leftEyeOpen = eyeOpenness(leftEye);
+    const rightEyeOpen = eyeOpenness(rightEye);
 
-  function eyeOpenness(eye: faceapi.Point[]): number {
-    const verticalDist1 = Math.abs(eye[1].y - eye[5].y);
-    const verticalDist2 = Math.abs(eye[2].y - eye[4].y);
-    const horizontalDist = Math.abs(eye[3].x - eye[0].x);
+    console.log("🟡 Left Eye EAR:", leftEyeOpen.toFixed(3));
+    console.log("🟡 Right Eye EAR:", rightEyeOpen.toFixed(3));
 
-    // EAR (Eye Aspect Ratio) formula
-    const eyeRatio = (verticalDist1 + verticalDist2) / (2.0 * horizontalDist);
-    return eyeRatio;
+    const closedEyeThreshold = 0.265;
+
+    const eyesClosed = leftEyeOpen < closedEyeThreshold && rightEyeOpen < closedEyeThreshold;
+
+    if (eyesClosed) {
+      console.log("⚠️ Eyes are considered CLOSED");
+    } else {
+      console.log("✅ Eyes are OPEN");
+    }
+
+    return eyesClosed;
   }
 
-  const leftEyeOpen = eyeOpenness(leftEye);
-  const rightEyeOpen = eyeOpenness(rightEye);
-
-  console.log(`🔍 Left Eye Ratio: ${leftEyeOpen.toFixed(3)}`);
-  console.log(`🔍 Right Eye Ratio: ${rightEyeOpen.toFixed(3)}`);
-
-  const closedEyeThreshold = 0.20; // Adjusted threshold for better accuracy
-
-  return leftEyeOpen < closedEyeThreshold && rightEyeOpen < closedEyeThreshold;
-}
 
 
 
