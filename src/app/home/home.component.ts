@@ -19,11 +19,9 @@ export class HomeComponent {
   onSubmit() {
     console.log('Navigating to:', this.selectedOption);
     if (this.selectedOption) {
-      this.router.navigateByUrl('/' + this.selectedOption)
-        .then(() => {
-          console.log('Navigation successful');
-          location.reload();  // Force refresh
-        })
+      this.router.navigate(['/' + this.selectedOption], {
+        queryParams: { type: this.selectedOption }
+      })
         .catch(err => console.error('Navigation Error:', err));
     } else {
       console.error('No option selected');

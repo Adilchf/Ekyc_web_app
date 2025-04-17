@@ -6,6 +6,7 @@ import * as faceapi from 'face-api.js';
 import { ApiService } from '../services/api.service';
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-pssport',
   templateUrl: './passport.component.html',
@@ -24,6 +25,7 @@ export class PassportComponent {
     cardNumber: '',
     birthdate: '',
     expiryDate: '',
+    documentType: '',
     selfie: null as File | null,
     frontImage: null as File | null,
     backImage: null as File | null,
@@ -47,7 +49,13 @@ export class PassportComponent {
   selfieFace: string | null = null;
 
 
+  constructor(private route: ActivatedRoute) {}
+  selectedDocumentType: string = 'Passport';
   async ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.selectedDocumentType = params['type'] || 'Passport'; // fallback to 'idCard' if not provided
+      console.log('📄 Document Type:', this.selectedDocumentType);
+    })
     await this.loadFaceModels();
     console.log("🔄 Loading face-api.js models...");
     await Promise.all([
@@ -282,6 +290,7 @@ onSubmit() {
   formData.append('birthdate', this.form.birthdate);
   formData.append('familyName', this.form.familyName);
   formData.append('givenName', this.form.givenName);
+  formData.append('document_type', this.selectedDocumentType);
 
   // Convert extracted faces from Base64 to Blob and append to FormData
   if (this.frontFace) {

@@ -46,7 +46,7 @@ app.post('/save-id-card', upload.fields([
   { name: 'frontFace', maxCount: 1 },
   { name: 'selfieFace', maxCount: 1 }]), async (req, res) => {
   try {
-    const { identityNumber, cardNumber, expiryDate, birthdate, familyName, givenName } = req.body;
+    const { identityNumber, cardNumber, expiryDate, birthdate, familyName, givenName,document_type } = req.body;
 
     const frontImageUrl = req.files['frontImage'] ? `/uploads/${req.files['frontImage'][0].filename}` : null;
 
@@ -54,9 +54,9 @@ app.post('/save-id-card', upload.fields([
     const selfieFaceUrl = req.files['selfieFace'] ? `/uploads/${req.files['selfieFace'][0].filename}` : null;
 
     const result = await pool.query(
-      `INSERT INTO id_cards (identity_number, card_number, expiry_date, birthdate, family_name, given_name, front_image_url, front_face_url, selfie_face_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8 , $9) RETURNING *`,
-      [identityNumber, cardNumber, expiryDate, birthdate, familyName, givenName, frontImageUrl, frontFaceUrl, selfieFaceUrl]
+      `INSERT INTO id_cards (identity_number, card_number, expiry_date, birthdate, family_name, given_name, front_image_url, front_face_url, selfie_face_url, document_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8 , $9, $10) RETURNING *`,
+      [identityNumber, cardNumber, expiryDate, birthdate, familyName, givenName, frontImageUrl, frontFaceUrl, selfieFaceUrl, document_type]
     );
 
     res.json({ success: true, data: result.rows[0] });
